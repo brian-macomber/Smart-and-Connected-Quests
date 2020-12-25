@@ -1,0 +1,85 @@
+<!-- 
+Contributors: Raghurama Bukkarayasamudram, Ritam Das, Brian Macomber
+Date: 12/06/2020
+Quest 5 - Cruise Control
+-->
+<!-- client side -->
+
+<!DOCTYPE html>
+<html>
+  <!-- HTML HEAD -->
+  <head>
+    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+    
+    <style>
+      .button {
+        border: none;
+        color: black;
+        padding: 15px 32px;
+        text-align: center;
+        text-decoration: none;
+        display: inline - block;
+        font-size: 16px;
+        margin: 4px 2px;
+        cursor: pointer;
+      }
+
+      .button1 {
+        background-color: #4CAF50;
+      }
+      .button2 {
+        background-color: #FF5733;
+      }
+    </style>
+  
+  </head>
+
+  <body>
+    <!-- HTML layout -->
+   
+        <div class="w3-center">
+          <h1 class="w3-xxxlarge"
+            style="text-align:left;font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;color:#1261A0;">
+            Cruise Control</h1>
+          <h1 class="w3-large" style="text-align:left;font-family:candara;">Ram Bukkarayasamudram, Ritam Das, Brian Macomber
+          </h1>
+        </div>
+        <h1>Driving Instructions</h1>
+      <!-- start button
+        -->
+      <div id="START" align="left" style="height: 60px; width: 1550px">
+      <button class="button button1" onclick="START()">START</button>
+
+      <div id="STOP" align="left" style="height: 60px; width: 1550px">
+      <button class="button button2" onclick="STOP()">STOP</button>
+  
+    <div id="chartContainer" style="height: 0px; width: 100%"></div>
+    <div class="w3-container">
+      <div class="w3-padding-32"></div>
+      <div class="w3-center">
+      <div class="w3-padding-16"></div>
+      <div class="w3-responsive w3-card-4 w3-center" style="width:100%;">
+
+    
+    <script>
+      var socket = io();
+
+      // If flag = 1, send start message to console
+      function START() {
+        Flag = 1
+        console.log("START");
+        socket.emit("message", "START");
+      }
+
+      // If flag = 0, send stop message to console
+      function STOP() {
+        Flag = 0
+        console.log("STOP");
+        socket.emit("message", "STOP");
+      }
+
+      setInterval(loaded(),2000);  
+    </script>
+
+  </body>
+</html>

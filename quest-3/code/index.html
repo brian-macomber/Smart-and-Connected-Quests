@@ -1,0 +1,229 @@
+<!-- 
+Contributors: Raghurama Bukkarayasamudram, Ritam Das, Brian Macomber
+Date: 10/23/2020
+Quest 3 - Hurricane Box
+ -->
+<!DOCTYPE html>
+<html>
+
+<head>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script type="text/javascript" src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+  <script type="text/javascript">
+    //function that is called every time the page is reloaded
+    window.onload = function () {
+      function updateChart() {
+        // this function reads the current csv data and plots it using CanvasJS
+        var dataPoints_1 = [],
+          dataPoints_2 = [],
+          dataPoints_3 = [];
+        //Query all the data at the localhost:8080/data endpoint
+        $.ajax({
+          url: "/data",
+          success: function (result) {
+            var count = 1;
+            jQuery.each(result, function (i, val) {
+              //grabbing csv data for
+              dataPoints_1.push({
+                x: count,
+                y: parseFloat(val[0]),
+              });
+              dataPoints_2.push({
+                x: count,
+                y: parseFloat(val[1]),
+              });
+              dataPoints_3.push({
+                x: count,
+                y: parseFloat(val[2]),
+              });
+
+              count += 1;
+            });
+
+            // here I can take only the data points up to a certain amount
+            var maxDataPoints = 30, //30 second sliding window
+              dataPoints_1_trimmed = [],
+              dataPoints_2_trimmed = [],
+              dataPoints_3_trimmed = [];
+
+            if (dataPoints_1.length > maxDataPoints) {
+              for (
+                let i = dataPoints_1.length - maxDataPoints;
+                i < dataPoints_1.length;
+                i++
+              ) {
+                dataPoints_1_trimmed.push(dataPoints_1[i]);
+                dataPoints_2_trimmed.push(dataPoints_2[i]);
+                dataPoints_3_trimmed.push(dataPoints_3[i]);
+              }
+            } else {
+              for (let i = 0; i < dataPoints_1.length; i++) {
+                dataPoints_1_trimmed.push(dataPoints_1[i]);
+                dataPoints_2_trimmed.push(dataPoints_2[i]);
+                dataPoints_3_trimmed.push(dataPoints_3[i]);
+              }
+            }
+
+            // chart that is being plotted
+            var chart1 = new CanvasJS.Chart("chartContainer1", {
+              title: {
+                text: "Plotting Roll vs. Time",
+              },
+              axisY: [
+                {
+                  title: "Roll",
+                  suffix: String.fromCharCode(176),
+                },
+              ],
+              axisX: {
+                title: "t (in seconds)",
+                suffix: "s",
+              },
+              toolTip: {
+                shared: true,
+              },
+              legend: {
+                cursor: "pointer",
+                verticalAlign: "top",
+                horizontalAlign: "center",
+                dockInsidePlotArea: true,
+                itemclick: toogleDataSeries,
+              },
+              data: [
+                {
+                  type: "line",
+                  axisYIndex: 0,
+                  name: "Roll",
+                  showInLegend: true,
+                  dataPoints: dataPoints_1_trimmed,
+                  markerType: "circle",
+                },
+              ],
+            });
+            // pitch vs time
+            var chart2 = new CanvasJS.Chart("chartContainer2", {
+              title: {
+                text: "Plotting Pitch vs. Time",
+              },
+              axisY: [
+                {
+                  title: "Pitch",
+                  suffix: String.fromCharCode(176),
+                },
+              ],
+              axisX: {
+                title: "t (in seconds)",
+                suffix: "s",
+              },
+              toolTip: {
+                shared: true,
+              },
+              legend: {
+                cursor: "pointer",
+                verticalAlign: "top",
+                horizontalAlign: "center",
+                dockInsidePlotArea: true,
+                itemclick: toogleDataSeries,
+              },
+              data: [
+                {
+                  type: "line",
+                  axisYIndex: 0,
+                  name: "Pitch",
+                  showInLegend: true,
+                  dataPoints: dataPoints_2_trimmed,
+                  markerType: "circle",
+                },
+              ],
+            });
+            // temperature vs time
+            var chart3 = new CanvasJS.Chart("chartContainer3", {
+              title: {
+                text: "Plotting Temperature vs. Time",
+              },
+              axisY: [
+                {
+                  title: "Temperature",
+                  suffix: String.fromCharCode(176) + "C",
+                },
+              ],
+              axisX: {
+                title: "t (in seconds)",
+                suffix: "s",
+              },
+              toolTip: {
+                shared: true,
+              },
+              legend: {
+                cursor: "pointer",
+                verticalAlign: "top",
+                horizontalAlign: "center",
+                dockInsidePlotArea: true,
+                itemclick: toogleDataSeries,
+              },
+              data: [
+                {
+                  type: "line",
+                  axisYIndex: 0,
+                  name: "Temperature",
+                  showInLegend: true,
+                  dataPoints: dataPoints_3_trimmed,
+                  markerType: "circle",
+                },
+              ],
+            });
+            // allows user to hover over data points to see values
+            function toogleDataSeries(e) {
+              if (
+                typeof e.dataSeries.visible === "undefined" ||
+                e.dataSeries.visible
+              ) {
+                e.dataSeries.visible = false;
+              } else {
+                e.dataSeries.visible = true;
+              }
+              chart1.render();
+              chart2.render();
+              chart3.render();
+            }
+            chart1.render();
+            chart2.render();
+            chart3.render();
+          },
+        });
+      }
+      //initial call to fcn to read and plot
+      updateChart();
+      // auto update graph every 3 seconds
+      setInterval(function () {
+        updateChart();
+      }, 3000);
+    };
+  </script>
+</head>
+
+<body>
+  <div id="chartContainer1" style="width: 100%; height: 300px"></div>
+  <div id="chartContainer2" style="width: 100%; height: 300px"></div>
+  <div id="chartContainer3" style="width: 100%; height: 300px"></div>
+  <form action="/led" method="POST">
+    <label for="led_brightness">LED brightness 0-9:</label><br />
+    <input type="text" id="brightness" name="brightness" /><br />
+    <input type="submit" value="Submit" />
+  </form>
+  <br />
+  <!-- 
+      use image tag 
+      - source is the URL below
+      
+      <p>Raspberry Pi Livestream</p>
+     <iframe
+       title="rPi webcam"
+       src="http://team3ec444.ddns.net:1132"
+       height="420"
+       width="640"
+       style="border: 1px solid black"
+     ></iframe> -->
+</body>
+
+</html>

@@ -1,0 +1,133 @@
+<!-- 
+Contributors: Raghurama Bukkarayasamudram, Ritam Das, Brian Macomber
+Date: 10/8/2020
+Quest 2 - Tactile Internet
+ -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script
+      type="text/javascript"
+      src="https://canvasjs.com/assets/script/canvasjs.min.js"
+    ></script>
+    <script type="text/javascript">
+      //function that is called every time the page is reloaded
+      window.onload = function () {
+        function updateChart() {
+          // this function reads the current csv data and plots it using CanvasJS
+          var dataPoints_1 = [],
+            dataPoints_2 = [],
+            dataPoints_3 = [];
+          //Query all the data at the localhost:8080/data endpoint
+          $.ajax({
+            url: "/data",
+            success: function (result) {
+              var count = 1;
+              jQuery.each(result, function (i, val) {
+                //grabbing csv data for all 3 sensors
+                dataPoints_1.push({
+                  x: count,
+                  y: parseInt(val[0]),
+                });
+                dataPoints_2.push({
+                  x: count,
+                  y: parseInt(val[1]),
+                });
+                dataPoints_3.push({
+                  x: count,
+                  y: parseInt(val[2]),
+                });
+
+                count += 1;
+              });
+
+              // chart that is being plotted
+              var chart = new CanvasJS.Chart("chartContainer", {
+                title: {
+                  text: "Plotting ESP32 Sensor Data",
+                },
+                axisY: [
+                  {
+                    title: "Temp",
+                    suffix: String.fromCharCode(176) + "C",
+                  },
+                  {
+                    title: "Distance: Ultrasonic",
+                    suffix: "cm",
+                  },
+                  {
+                    title: "Distance: IR",
+                    suffix: "cm",
+                  },
+                ],
+                axisX: {
+                  title: "t (in seconds)",
+                  suffix: "s",
+                },
+                toolTip: {
+                  shared: true,
+                },
+                legend: {
+                  cursor: "pointer",
+                  verticalAlign: "top",
+                  horizontalAlign: "center",
+                  dockInsidePlotArea: true,
+                  itemclick: toogleDataSeries,
+                },
+                data: [
+                  {
+                    type: "line",
+                    axisYIndex: 0,
+                    name: "Temp",
+                    showInLegend: true,
+                    dataPoints: dataPoints_1,
+                    markerType: "circle",
+                  },
+                  {
+                    type: "line",
+                    axisYIndex: 1,
+                    name: "UltraSonic",
+                    showInLegend: true,
+                    dataPoints: dataPoints_2,
+                    markerType: "triangle",
+                  },
+                  {
+                    type: "line",
+                    axisYIndex: 2,
+                    name: "IR Rangefinder",
+                    showInLegend: true,
+                    dataPoints: dataPoints_3,
+                    markerType: "square",
+                  },
+                ],
+              });
+              // allows user to hover over data points to see values
+              function toogleDataSeries(e) {
+                if (
+                  typeof e.dataSeries.visible === "undefined" ||
+                  e.dataSeries.visible
+                ) {
+                  e.dataSeries.visible = false;
+                } else {
+                  e.dataSeries.visible = true;
+                }
+                chart.render();
+              }
+              chart.render();
+            },
+          });
+        }
+        //initial call to fcn to read and plot
+        updateChart();
+        // auto update graph every 2 seconds
+        setInterval(function () {
+          updateChart();
+        }, 2000);
+      };
+    </script>
+  </head>
+  <body>
+    <div id="chartContainer" style="width: 100%; height: 300px"></div>
+  </body>
+</html>

@@ -1,0 +1,174 @@
+<!-- 
+Contributors: Raghurama Bukkarayasamudram, Ritam Das, Brian Macomber
+Date: 12/10/2020
+Quest 6 - Smart Toaster
+ -->
+
+
+<!-- client side -->
+
+<!DOCTYPE html>
+<html>
+<!-- HTML HEAD -->
+
+<head>
+    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+    <script type="text/javascript">
+        //function that is called every time the page is reloaded
+        window.onload = function () {
+            function updateChart() {
+                // this function reads the current csv data and plots it using CanvasJS
+                var dataPoints = [];
+                var dataPoints_trimmed = [];
+                //Query all the data at the localhost:8080/data endpoint
+                $.ajax({
+                    url: "/data",
+                    success: function (result) {
+                        var count = 1;
+                        jQuery.each(result, function (i, val) {
+                            //grabbing csv data for
+                            dataPoints.push({
+                                x: count,
+                                y: parseFloat(val[0]),
+                            });
+                            count += 1;
+                        });
+
+                        // chart that is being plotted
+                        // temperature vs time
+                        var chart = new CanvasJS.Chart("chartContainer", {
+                            title: {
+                                text: "Plotting Temperature vs. Time",
+                            },
+                            axisY: [
+                                {
+                                    title: "Temperature",
+                                    suffix: String.fromCharCode(176) + "C",
+                                },
+                            ],
+                            axisX: {
+                                title: "t (in seconds)",
+                                suffix: "s",
+                            },
+                            toolTip: {
+                                shared: true,
+                            },
+                            legend: {
+                                cursor: "pointer",
+                                verticalAlign: "top",
+                                horizontalAlign: "center",
+                                dockInsidePlotArea: true,
+                                itemclick: toogleDataSeries,
+                            },
+                            data: [
+                                {
+                                    type: "line",
+                                    axisYIndex: 0,
+                                    name: "Temperature",
+                                    showInLegend: true,
+                                    dataPoints: dataPoints,
+                                    markerType: "circle",
+                                },
+                            ],
+                        });
+                        // allows user to hover over data points to see values
+                        function toogleDataSeries(e) {
+                            if (
+                                typeof e.dataSeries.visible === "undefined" ||
+                                e.dataSeries.visible
+                            ) {
+                                e.dataSeries.visible = false;
+                            } else {
+                                e.dataSeries.visible = true;
+                            }
+                            chart.render();
+                        }
+                        chart.render();
+                    },
+                });
+            }
+            //initial call to fcn to read and plot
+            updateChart();
+            // auto update graph every 3 seconds
+            setInterval(function () {
+                updateChart();
+            }, 3000);
+        };
+    </script>
+
+    <script>
+        var socket = io();
+
+        // If flag = 1, send start message to console
+        function START() {
+            console.log("Start");
+            socket.emit("message", "Start");
+        }
+
+        // If flag = 0, send stop message to console
+        function RESET() {
+            console.log("Reset");
+            socket.emit("message", "Reset");
+        }
+    </script>
+    <style>
+        .button {
+            border: none;
+            color: black;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline - block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+        }
+
+        .button1 {
+            background-color: #4CAF50;
+        }
+
+        .button2 {
+            background-color: #FF5733;
+        }
+    </style>
+
+</head>
+
+<body>
+    <!-- HTML layout -->
+
+    <div class="w3-center">
+        <h1 class="w3-xxxlarge"
+            style="text-align:left;font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;color:#1261A0;">
+            Smart Toaster</h1>
+        <h1 class="w3-large" style="text-align:left;font-family:candara;">Ram Bukkarayasamudram, Ritam Das, Brian
+            Macomber
+        </h1>
+    </div>
+    <h1>Toasting Instructions</h1>
+    <div id="chartContainer" style="width: 100%; height: 300px"></div>
+    <div id="START" align="left" style="height: 60px; width: 1550px">
+        <button class="button button1" onclick="START()">START</button>
+
+        <div id="STOP" align="left" style="height: 60px; width: 1550px">
+            <button class="button button2" onclick="RESET()">RESET</button>
+
+            <div class="w3-container">
+                <div class="w3-padding-32"></div>
+                <div class="w3-center">
+                    <div class="w3-padding-16"></div>
+                    <div class="w3-responsive w3-card-4 w3-center" style="width:100%;">
+                        <!-- Pi cam here -->
+                        <img src="http://192.168.7.212:8081/" alt="Pi Cam" width="640" height="480">
+
+
+
+
+</body>
+
+
+
+</html>
